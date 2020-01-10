@@ -1,0 +1,29 @@
+{
+  "name": "cryptobet-cbet-token",
+  "version": "1.0.0",
+  "description": "CryptoBet ERC20 CBET Token",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodyce/cryptobet-cbet-token.git"
+  },
+  "keywords": [
+    "ETH",
+    "CBET",
+    "CryptoBet",
+    "Ethereum"
+  ],
+  "author": "Rodimiro Cerrato E",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rodyce/cryptobet-cbet-token/issues"
+  },
+  "homepage": "https://github.com/rodyce/cryptobet-cbet-token#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^2.4.0",
+    "truffle": "^5.1.7"
+  }
+}
