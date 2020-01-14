@@ -24,7 +24,9 @@
   "homepage": "https://github.com/rodyce/cryptobet-cbet-token#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^2.4.0",
-    "truffle": "^5.1.7"
+    "truffle": "^5.1.7",
+    "truffle-contract": "^4.0.31",
+    "web3": "^1.2.4"
   },
   "devDependencies": {
     "ganache-cli": "^6.8.1"
