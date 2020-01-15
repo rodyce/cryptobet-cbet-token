@@ -13,7 +13,7 @@ contract CBETDistribution is Ownable {
     uint256 public constant MAX_SUPPLY_TO_ALLOCATE = 107_395_607 * 10 ** 18;
     uint256 public ALLOCATED_SUPPLY = 0;
 
-    address cbetTokenAddress;
+    address private cbetTokenAddress;
 
     // Keep track of the addresses that have already been allocated for CBET tokens.
     mapping (address => bool) public allocations;
@@ -25,6 +25,7 @@ contract CBETDistribution is Ownable {
      */
     function airdropTokens(address[] memory recipients, uint256[] memory amounts) public onlyOwner {
         CBETToken cbetToken = CBETToken(cbetTokenAddress);
+        require(recipients.length > 0);
         require(recipients.length == amounts.length);
         uint256 airdropped = 0;
         for (uint256 i = 0; i < recipients.length; i++) {
@@ -47,13 +48,16 @@ contract CBETDistribution is Ownable {
     }
 
     /**
+     * @dev Get the CBET token address.
+     */
+    function getCBETTokenAddress() public view returns(address) {
+        return cbetTokenAddress;
+    }
+    /**
      * @dev Set the CBET token address (only once).
      */
     function setCBETTokenAddress(address _cbetTokenAddress) external {
-        if (cbetTokenAddress != address(0)) {
-            // Nothing to do. Address was already set.
-            return;
-        }
+        require(cbetTokenAddress == address(0), "CBET Token address previously set");
         cbetTokenAddress = _cbetTokenAddress;
     }
 }
