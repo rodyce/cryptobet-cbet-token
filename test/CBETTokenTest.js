@@ -20,9 +20,13 @@ contract('CBETToken', function(accounts) {
     });
 
     it('CBET ERC20 tokens belong to the distribution contract', async () => {
-        const tokenDistributionBalance = await token.balanceOf(tokenDistribution.address);
+        const amounts = await Promise.all([
+            token.balanceOf(tokenDistribution.address),
+            tokenDistribution.getAllocatedSupply()
+        ]);
+        const [tokenDistributionBalance, allocatedSupply] = amounts;
         assert(
-            ExpectedTotalSupply.eq(tokenDistributionBalance),
-            'Distribution contract must own CBET tokens');
+            tokenDistributionBalance.add(allocatedSupply).eq(ExpectedTotalSupply),
+            `Distribution contract must own all non-allocated CBET tokens`);
     });
 });

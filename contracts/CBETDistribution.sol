@@ -9,10 +9,9 @@ import "./CBETToken.sol";
 contract CBETDistribution is Ownable {
     using SafeMath for uint256;
 
-    uint256 public constant FIXED_TOTAL_SUPPLY = 950_000_000 * 10 ** 18;
     uint256 public constant MAX_SUPPLY_TO_ALLOCATE = 107_395_607 * 10 ** 18;
-    uint256 public ALLOCATED_SUPPLY = 0;
-
+    uint256 public constant MAX_BALANCE_TO_TRANSFER = 10_000 * 10 ** 18;
+    uint256 private allocatedSupply = 0;
     address private cbetTokenAddress;
 
     // Keep track of the addresses that have already been allocated for CBET tokens.
@@ -24,19 +23,29 @@ contract CBETDistribution is Ownable {
      * @param amounts List of amounts to allocate to each corresponding recipient.
      */
     function airdropTokens(address[] memory recipients, uint256[] memory amounts) public onlyOwner {
-        CBETToken cbetToken = CBETToken(cbetTokenAddress);
+        // Check the number of recipients and amounts are equal.
         require(recipients.length > 0);
         require(recipients.length == amounts.length);
+        // Obtain CBET token contract from its address.
+        CBETToken cbetToken = CBETToken(cbetTokenAddress);
         uint256 airdropped = 0;
         for (uint256 i = 0; i < recipients.length; i++) {
             if (allocations[recipients[i]] == false) {
                 allocations[recipients[i]] = true;
-                require(cbetToken.transfer(recipients[i], amounts[i]));
-                airdropped = airdropped.add(amounts[i]);
+                // Only transfer if the amount is less than 10,000 CBET.
+                if (amounts[i] < MAX_BALANCE_TO_TRANSFER) {
+                    // Do and validate transfer.
+                    require(cbetToken.transfer(recipients[i], amounts[i]));
+                    // Increase airdropped token count.
+                    airdropped = airdropped.add(amounts[i]);
+                }
             }
         }
-        require(ALLOCATED_SUPPLY.add(airdropped) < MAX_SUPPLY_TO_ALLOCATE);
-        ALLOCATED_SUPPLY = ALLOCATED_SUPPLY.add(airdropped);
+        // Check that the allocated supply did not exceed the supply to allocate.
+        // Revert if necessary.
+        require(allocatedSupply.add(airdropped) <= MAX_SUPPLY_TO_ALLOCATE);
+        // Accumulate allocated supply.
+        allocatedSupply = allocatedSupply.add(airdropped);
     }
 
     /**
@@ -45,6 +54,13 @@ contract CBETDistribution is Ownable {
     function getBalance() external view returns(uint256) {
         CBETToken cbetToken = CBETToken(cbetTokenAddress);
         return cbetToken.balanceOf(address(this));
+    }
+
+    /**
+     * @dev Obtain current allocated supply of CBET tokens.
+     */
+    function getAllocatedSupply() external view returns(uint256) {
+        return allocatedSupply;
     }
 
     /**
