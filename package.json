@@ -25,6 +25,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^2.4.0",
     "bn.js": "^5.1.1",
+    "fast-csv": "^4.0.2",
     "truffle": "^5.1.7",
     "truffle-contract": "^4.0.31",
     "web3": "^1.2.4"

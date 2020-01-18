@@ -30,6 +30,10 @@ contract CBETDistribution is Ownable {
         CBETToken cbetToken = CBETToken(cbetTokenAddress);
         uint256 airdropped = 0;
         for (uint256 i = 0; i < recipients.length; i++) {
+            if (recipients[i] == address(0)) {
+                // Skip the zero address.
+                continue;
+            }
             if (allocations[recipients[i]] == false) {
                 allocations[recipients[i]] = true;
                 // Only transfer if the amount is less than 10,000 CBET.
