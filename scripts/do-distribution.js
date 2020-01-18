@@ -2,6 +2,7 @@ const fs = require('fs');
 const csv = require('fast-csv');
 const web3 = require('web3');
 const BN = require('bn.js');
+const assert = require('assert');
 
 const argv = process.argv[0] === 'node' ?
     process.argv.slice(3) : process.argv.slice(2);
@@ -13,8 +14,10 @@ const csvFile = './data/cbet_balances.csv';
 
 async function obtainBatches(fileName, batchSize) {
     return await new Promise((resolve, reject) => {
-        const allBatches = [];
-        let currentBatch = [];
+        const allAddressBatches = [];
+        const allAmountBatches = [];
+        let currentAddressBatch = [];
+        let currentAmountBatch = [];
         let index = 0;
         try {
             const stream = fs.createReadStream(fileName);
@@ -32,16 +35,20 @@ async function obtainBatches(fileName, batchSize) {
                     return;
                 }
             
-                currentBatch.push([address, weiAmount]);
+                currentAddressBatch.push(address);
+                currentAmountBatch.push(weiAmount);
                 index++;
                 if (index >= batchSize) {
-                    allBatches.push(currentBatch);
-                    currentBatch = [];
+                    allAddressBatches.push(currentAddressBatch);
+                    allAmountBatches.push(currentAmountBatch);
+                    currentAddressBatch = [];
+                    currentAmountBatch = [];
                     index = 0;
                 }
             }).on('end', function() {
-                allBatches.push(currentBatch);
-                resolve(allBatches);
+                allAddressBatches.push(currentAddressBatch);
+                allAmountBatches.push(currentAmountBatch);
+                resolve([allAddressBatches, allAmountBatches]);
             });
             stream.pipe(csvStream);    
         } catch(err) {
@@ -79,9 +86,11 @@ async function main() {
             return this[this.length - 1];
         };
     };
-    const batches = await obtainBatches(csvFile, batchSize);
-    log.info(`Number of batches: ${batches.length}`);
-    log.info(`Last address: ${batches.last().last()}`);
+    const [addressBatches, amountBatches] = await obtainBatches(csvFile, batchSize);
+    assert(addressBatches.length === amountBatches.length);
+
+    log.info(`Number of batches: ${addressBatches.length}`);
+    log.info(`Last address, amount: ${addressBatches.last().last()}, ${amountBatches.last().last()}`);
     log.info(`contract addr: ${polyDistributionContractAddress}`);
 }
 
