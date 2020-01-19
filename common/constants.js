@@ -4,5 +4,6 @@ const Ten = new BN(10);
 const Million = Ten.pow(new BN(6));
 const WeiFactor = Ten.pow(new BN(18));
 const ExpectedTotalSupply = new BN(950).mul(Million).mul(WeiFactor);
+const AccountBalanceLimit = new BN(10000).mul(WeiFactor);
 
-module.exports = { ExpectedTotalSupply };
+module.exports = { ExpectedTotalSupply, AccountBalanceLimit };
