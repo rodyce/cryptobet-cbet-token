@@ -69,6 +69,19 @@ async function obtainBatches(fileName, batchSize) {
     });
 }
 
+function getReceiptDataFromTx(tx) {
+    const receipt = {
+        transactionHash: tx.receipt.transactionHash,
+        transactionIndex: tx.receipt.transactionIndex,
+        blockHash: tx.receipt.blockHash,
+        blockNumber: tx.receipt.blockNumber,
+        from: tx.receipt.from,
+        to: tx.receipt.to,
+        gasUsed: tx.receipt.gasUsed,
+        cumulativeGasUsed: tx.receipt.cumulativeGasUsed
+    };
+    return receipt;
+}
 
 async function main() {
     if (argv.length < 1) {
@@ -111,6 +124,10 @@ async function main() {
         const cbetDistributionInst = await cbetDistributionContract.at(cbetDistributionContractAddress);
         const cbetDistributionOwner = await cbetDistributionInst.owner();
 
+        const fromData = {
+            from: cbetDistributionOwner
+        };
+
         for (var i = 0; i < addressBatches.length; i++) {
             // Get address and amount batches.
             const addressBatch = addressBatches[i];
@@ -119,24 +136,13 @@ async function main() {
             // Invoke distribution contract function.
             const t0 = performance.now();
             const tx = await cbetDistributionInst.airdropTokens(
-                addressBatch, amountBatch, {
-                    from: cbetDistributionOwner
-                });
+                addressBatch, amountBatch, fromData);
             // Measure time taken.
             const t1 = performance.now();
             const timeTaken = t1 - t0;
 
             // Obtain receipt data.
-            const receipt = {
-                transactionHash: tx.receipt.transactionHash,
-                transactionIndex: tx.receipt.transactionIndex,
-                blockHash: tx.receipt.blockHash,
-                blockNumber: tx.receipt.blockNumber,
-                from: tx.receipt.from,
-                to: tx.receipt.to,
-                gasUsed: tx.receipt.gasUsed,
-                cumulativeGasUsed: tx.receipt.cumulativeGasUsed
-            };
+            const receipt = getReceiptDataFromTx(tx);
             totalGasUsed += receipt.cumulativeGasUsed;
             totalTimeTaken += timeTaken;
             batchesProcessed++;
@@ -146,6 +152,12 @@ async function main() {
             log.info(`</PROCESSING BATCH ${i+1}>`);
             log.info();
         }
+
+        log.info('Distribution done. Closing...');
+        const closeTx = await cbetDistributionInst.closeDistribution(fromData);
+        log.info('Distribution closed!');
+        const receipt = getReceiptDataFromTx(closeTx);
+        totalGasUsed += receipt.cumulativeGasUsed;
     } catch(err) {
         log.error(err);
     }
