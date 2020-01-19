@@ -9,10 +9,12 @@ import "./CBETToken.sol";
 contract CBETDistribution is Ownable {
     using SafeMath for uint256;
 
-    uint256 public constant MAX_SUPPLY_TO_ALLOCATE = 107_395_607 * 10 ** 18;
-    uint256 public constant MAX_BALANCE_TO_TRANSFER = 10_000 * 10 ** 18;
+    uint256 private constant MAX_SUPPLY_TO_ALLOCATE = 107_395_607 * 10 ** 18;
+    uint256 private constant MAX_BALANCE_TO_TRANSFER = 10_000 * 10 ** 18;
     uint256 private allocatedSupply = 0;
     address private cbetTokenAddress;
+
+    bool public distributionClosed = false;
 
     // Keep track of the addresses that have already been allocated for CBET tokens.
     mapping (address => bool) public allocations;
@@ -23,6 +25,8 @@ contract CBETDistribution is Ownable {
      * @param amounts List of amounts to allocate to each corresponding recipient.
      */
     function airdropTokens(address[] memory recipients, uint256[] memory amounts) public onlyOwner {
+        // Check if the distribution is not closed.
+        require(!distributionClosed);
         // Check the number of recipients and amounts are equal.
         require(recipients.length > 0);
         require(recipients.length == amounts.length);
@@ -50,6 +54,30 @@ contract CBETDistribution is Ownable {
         require(allocatedSupply.add(airdropped) <= MAX_SUPPLY_TO_ALLOCATE);
         // Accumulate allocated supply.
         allocatedSupply = allocatedSupply.add(airdropped);
+    }
+
+    /**
+     * @dev Finish token distribution by sending remaining balance to this
+     *      contract's owner.
+     */
+    function closeDistribution() external onlyOwner {
+        if (distributionClosed) {
+            // Distribution already closed. Do nothing.
+            return;
+        }
+
+        require(allocatedSupply > 0);
+
+        // Obtain CBET token contract from its address.
+        CBETToken cbetToken = CBETToken(cbetTokenAddress);
+        // Obtain this contract's balance.
+        uint256 remaining = cbetToken.balanceOf(address(this));
+        // Transfer balance to owner.
+        cbetToken.transfer(this.owner(), remaining);
+        // Allocate rest of supply.
+        allocatedSupply = allocatedSupply.add(remaining);
+        // Mark the distribution as closed.
+        distributionClosed = true;
     }
 
     /**

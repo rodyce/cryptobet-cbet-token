@@ -4,8 +4,11 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 
 contract CBETToken is ERC20 {
-    // Define a total fixed supply of 950 millions CBET
-    uint256 constant totalFixedSupply = 950_000_000 * 10 ** 18;
+    // CBET token parameters
+    string public constant name = 'CryptoBet';
+    string public constant symbol = 'CBET';
+    uint8 public constant decimals = 18;
+    uint256 public constant decimalFactor = 10 ** uint256(decimals);
 
     /**
      * @dev Constructor for CryptoBet CBET token creation.
@@ -13,6 +16,7 @@ contract CBETToken is ERC20 {
      *      distribution contract address.
      */
     constructor (address distributionContractAddress) public {
-        super._mint(distributionContractAddress, totalFixedSupply);
+        // Define a total fixed supply of 950 millions CBET
+        super._mint(distributionContractAddress, 950_000_000 * decimalFactor);
     }
 }
