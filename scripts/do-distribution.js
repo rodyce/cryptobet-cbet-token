@@ -16,8 +16,14 @@ const argv = process.argv[0] === 'node' ?
 const log = typeof console != 'undefined' ? console : {info:function(){}};
 
 const csvFile = './scripts/data/cbet_balances.csv';
-const networkName = 'privateGanache';
+const networkName = process.env['NETWORK_NAME'];
+const justCloseDistribution = process.env['JUST_CLOSE_DISTRIBUTION'] === '1';
+const gasPrice = '14000000000'; // 14 gwei
 
+if (networks[networkName] === undefined) {
+    log.error(`Invalid network: ${networkName}`);
+    return;
+}
 
 async function obtainBatches(fileName, batchSize) {
     return await new Promise((resolve, reject) => {
@@ -125,39 +131,43 @@ async function main() {
         const cbetDistributionOwner = await cbetDistributionInst.owner();
 
         const fromData = {
-            from: cbetDistributionOwner
+            from: cbetDistributionOwner,
+            gasPrice: gasPrice
         };
 
-        for (var i = 0; i < addressBatches.length; i++) {
-            // Get address and amount batches.
-            const addressBatch = addressBatches[i];
-            const amountBatch = amountBatches[i];
-            log.info(`<PROCESSING BATCH ${i+1}>`);
-            // Invoke distribution contract function.
-            const t0 = performance.now();
-            const tx = await cbetDistributionInst.airdropTokens(
-                addressBatch, amountBatch, fromData);
-            // Measure time taken.
-            const t1 = performance.now();
-            const timeTaken = t1 - t0;
+        if (justCloseDistribution === false) {
+            for (var i = 0; i < addressBatches.length; i++) {
+                // Get address and amount batches.
+                const addressBatch = addressBatches[i];
+                const amountBatch = amountBatches[i];
+                log.info(`<PROCESSING BATCH ${i+1}>`);
+                // Invoke distribution contract function.
+                const t0 = performance.now();
+                const tx = await cbetDistributionInst.airdropTokens(
+                    addressBatch, amountBatch, fromData);
+                // Measure time taken.
+                const t1 = performance.now();
+                const timeTaken = t1 - t0;
 
-            // Obtain receipt data.
-            const receipt = getReceiptDataFromTx(tx);
-            totalGasUsed += receipt.cumulativeGasUsed;
-            totalTimeTaken += timeTaken;
-            batchesProcessed++;
-
-            log.info(receipt);
-            log.info(`Time taken: ${timeTaken} ms`);
-            log.info(`</PROCESSING BATCH ${i+1}>`);
-            log.info();
+                // Obtain receipt data.
+                const receipt = getReceiptDataFromTx(tx);
+                totalGasUsed += receipt.gasUsed;
+                totalTimeTaken += timeTaken;
+                batchesProcessed++;
+    
+                log.info(receipt);
+                log.info(`Time taken: ${timeTaken} ms`);
+                log.info(`</PROCESSING BATCH ${i+1}>`);
+                log.info();
+            }
+            log.info('Distribution done.');
+        } else {
+            log.info('Closing distribution...');
+            const closeTx = await cbetDistributionInst.closeDistribution(fromData);
+            log.info('Distribution closed!');
+            const receipt = getReceiptDataFromTx(closeTx);
+            totalGasUsed += receipt.gasUsed;
         }
-
-        log.info('Distribution done. Closing...');
-        const closeTx = await cbetDistributionInst.closeDistribution(fromData);
-        log.info('Distribution closed!');
-        const receipt = getReceiptDataFromTx(closeTx);
-        totalGasUsed += receipt.cumulativeGasUsed;
     } catch(err) {
         log.error(err);
     }
