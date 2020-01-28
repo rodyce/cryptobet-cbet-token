@@ -15,9 +15,11 @@ Lastly, run the unit tests with `truffle`:
 $ npx truffle test
 ```
 
-Once everything is working fine, proceed to deploy to a network with `truffle migrate`
+Once everything is working fine, proceed to deploy to a network with `truffle migrate`.
+By default, `truffle` uses the *'development'* network configured in the *truffle-config.js*
+file. You may also want to use the *--reset* to force redeployment.
 ```sh
-$ npx truffle migrate
+$ npx truffle migrate --network <network in truffle-config.js file>
 ```
 
 The target network to perform migration is controlled by the $NETWORK_NAME environment variable.
