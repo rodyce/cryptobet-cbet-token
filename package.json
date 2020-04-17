@@ -33,6 +33,7 @@
     "web3": "^1.2.4"
   },
   "devDependencies": {
-    "ganache-cli": "^6.8.1"
+    "ganache-cli": "^6.8.1",
+    "truffle-flattener": "^1.4.2"
   }
 }

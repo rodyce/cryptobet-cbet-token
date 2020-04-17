@@ -26,3 +26,7 @@ The target network to perform migration is controlled by the $NETWORK_NAME envir
 
 For reference regarding more environment variables, consult **.env.example** file. You can set the mnemonics to use when migrating and the *Infura* keys to perform migrations.
 
+Another important option is to *flatten* the contract so all code is expanded into a single file. To do so, use **truffle-flattener** as follows:
+```sh
+$ npx truffle-flattener <contract_file>.sol
+```
