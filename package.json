@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/rodyce/cryptobet-cbet-token#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "^2.4.0",
+    "@openzeppelin/contracts": "^4.4.2",
     "bn.js": "^5.1.1",
     "dotenv": "^8.2.0",
     "fast-csv": "^4.0.2",
